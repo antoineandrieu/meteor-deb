@@ -36,6 +36,12 @@ readlink_f() {
 }
 
 ### INITIALIZE ###
+meteor build ../ --directory 
+cd ../bundle
+sed -i '1i#!/usr/bin/node' main.js
+chmod u+w programs/server/package.json
+jq '. + { "node_deb": {"init": "systemd", "version": "1.2.3-beta", "description": "hello","entrypoints": {"daemon": "main.js"}} }' programs/server/package.json > tmp.$$.json && mv tmp.$$.json programs/server/package.json
+
 
 # the absolute path of this executable on the system
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
