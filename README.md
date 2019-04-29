@@ -1,22 +1,22 @@
-# node-deb
+# meteor-deb
 
 Debian packaging for Node.js projects written 100% in `bash`.
 
 Simple.
 
 ## Installation
-`npm install node-deb`
+`npm install meteor-deb`
 
 or
 
-`git clone ${url} && cd node-deb && npm run node-deb && sudo dpkg -i $(find . -maxdepth 1 -type f -name '*.deb' | tail -n 1)`
+`git clone ${url} && cd meteor-deb && npm run meteor-deb && sudo dpkg -i $(find . -maxdepth 1 -type f -name '*.deb' | tail -n 1)`
 
 ## Usage
 
 A simple project can be packaged with the following command.
 
 ```bash
-node-deb -- index.js lib/
+meteor-deb -- index.js lib/
 ```
 
 This command will add all of the above files and directories to a Debian package as well as generate the scripts
@@ -24,16 +24,16 @@ necessary to install, uninstall, start, and stop your application. On installati
 dedicated Unix users and groups will be created and your distribution's default init system will start and monitor
 the process.
 
-`node-deb` uses sane defaults, so the only thing you need to add to your `package.json` is the app/cli entrypoint.
+`meteor-deb` uses sane defaults, so the only thing you need to add to your `package.json` is the app/cli entrypoint.
 However, if you don't like these, there are two options for overrides: command line options, or the JSON object
 `node_deb` at the top level of your `package.json`. A full explanation of the different options can be found by
-running `node-deb --help`.
+running `meteor-deb --help`.
 
 By default, if any of the following files exist, they will be included in the Debian package: `package.json`,
 `npm-shrinkwrap.json` and `package-lock.json`.
 
 For example, here are some sample `node_deb` overrides. The full list can be found by running
-`node-deb --list-json-overrides`.
+`meteor-deb --list-json-overrides`.
 
 ```json
 {
@@ -68,7 +68,7 @@ always override the values found in the rest of `package.json`.
 }
 ```
 
-`cmd`: `node-deb -- app.js lib/`
+`cmd`: `meteor-deb -- app.js lib/`
 
 You will get:
 - A Debian package named `some-app_1.2.3_all.deb`
@@ -101,7 +101,7 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -u foo -g bar -v 20150826 -- index.js lib/`
+`cmd`: `meteor-deb -u foo -g bar -v 20150826 -- index.js lib/`
 
 You will get:
 - A Debian package named `some-other-app_20150826_all.deb`
@@ -140,7 +140,7 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb -- app.js lib/`
+`cmd`: `meteor-deb -- app.js lib/`
 
 You will get:
 - A Debian package named `a-third-app_0.10.1_all.deb`
@@ -178,7 +178,7 @@ On install, you will get.
 }
 ```
 
-`cmd`: `node-deb --no-default-package-dependencies -- app.js lib/`
+`cmd`: `meteor-deb --no-default-package-dependencies -- app.js lib/`
 
 You will get:
 - A Debian package named `a-forth-app_0.10.1_all.deb`
@@ -201,13 +201,13 @@ On install, you will get.
 Note: Removal via `apt-get purge` will attempt to remove the user and group defined in the Debian package.
 This can have serious consequences if the user or group is shared by other applications!
 
-`node-deb` can Debian-package itself. Just run `npm run node-deb`.
+`meteor-deb` can Debian-package itself. Just run `npm run meteor-deb`.
 
 More complete examples can be found by looking at `test.sh` and the corresponding projects in the `test` directory.
 
 ### Options
 
-This section incldues addtional details about the more advanced functionality of `node-deb`
+This section incldues addtional details about the more advanced functionality of `meteor-deb`
 
 #### `--install-strategy`
 
@@ -234,7 +234,7 @@ Tests are run via `docker`. This is also available through `apt` and `brew`.
 
 ## Support
 
-`node-deb` only officially supports the currently supported versions of Debian and Ubuntu (LTS). This includes both
+`meteor-deb` only officially supports the currently supported versions of Debian and Ubuntu (LTS). This includes both
 for building packages and deploying packages. At the time of this update, this translates to Debian Wheezy through
 Stretch and Ubuntu Trusty through Xenial. Care has been taken to ensure this packages correctly on macOS, and macOS
 specific issues should still be reported.
