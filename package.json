@@ -1,8 +1,8 @@
 {
   "name": "meteor-deb",
-  "version": "0.10.8",
-  "description": "Debian packaging for Node.js projects",
-  "author": "heartsucker <heartsucker@autistici.org>",
+  "version": "0.1.0",
+  "description": "Debian packaging for Meteor projects",
+  "author": "antoineandrieu <antoine@andrieu.me>",
   "bin": {
     "meteor-deb": "./meteor-deb"
   },
@@ -12,10 +12,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/heartsucker/meteor-deb.git"
+    "url": "git+https://github.com/antoineandrieu/meteor-deb.git"
   },
   "bugs": {
-    "url": "https://github.com/heartsucker/meteor-deb/issues"
+    "url": "https://github.com/antoineandrieu/meteor-deb/issues"
   },
   "keywords": [
     "debian",
@@ -31,7 +31,7 @@
   "preferGlobal": true,
   "private": false,
   "license": "MIT",
-  "homepage": "https://github.com/heartsucker/meteor-deb",
+  "homepage": "https://github.com/antoineandrieu/meteor-deb",
   "files": [
     "meteor-deb",
     "templates",
@@ -47,5 +47,6 @@
     "templates": {
       "control": "template-overrides/control"
     }
-  }
+  },
+  "dependencies": {}
 }
