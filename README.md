@@ -1,6 +1,6 @@
 # meteor-deb
 
-Debian packaging for Node.js projects written 100% in `bash`.
+Debian packaging for Meteor projects written 100% in `bash`.
 
 Simple.
 
