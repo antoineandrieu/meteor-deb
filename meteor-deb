@@ -36,9 +36,18 @@ readlink_f() {
 }
 
 ### INITIALIZE ###
+meteor build ../ --directory 
+cd ../bundle
+meteor npm install
+sed -i '1i#!/usr/bin/node' main.js
+chmod u+x main.js
+chmod u+w programs/server/package.json
+jq '. + { "node_deb": {"init": "systemd", "version": "1.2.3-beta", "description": "hello","entrypoints": {"daemon": "main.js"}} }' programs/server/package.json > tmp.$$.json && mv tmp.$$.json programs/server/package.json
+
 
 # the absolute path of this executable on the system
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
+echo $node_deb_dir
 declare -r node_deb_dir
 
 # the absolute path of the target project's source code on the system
@@ -88,9 +97,9 @@ usage() {
   declare helpdoc='HELP'
   helpdoc+='DOC'
 
-  echo 'Usage: node-deb [opts] -- file [file ...]'
+  echo 'Usage: meteor-deb [opts] -- file [file ...]'
   echo 'Opts:'
-  grep "$helpdoc" "$node_deb_dir/node-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
+  grep "$helpdoc" "$node_deb_dir/meteor-deb" -B 1 | egrep -v '^--$' | sed -e 's/^  //g' -e "s/# $helpdoc: //g"
 }
 
 cat_template() {
@@ -247,7 +256,7 @@ while [ -n "$1" ]; do
     --list-json-overrides)
       # HELPDOC: List all fields of the 'node_deb' object in 'package.json' that can be used as an override then exit
       # TODO this is likely to break
-      grep 'jq ' "$node_deb_dir/node-deb" | grep '\.node_deb\.' | cut -d "'" -f 2 | sort | uniq
+      grep 'jq ' "$node_deb_dir/meteor-deb" | grep '\.node_deb\.' | cut -d "'" -f 2 | sort | uniq
       exit 0
       ;;
     --list-templates)
@@ -262,7 +271,7 @@ while [ -n "$1" ]; do
       declare -r begin_pattern="### BEGIN $temp_vars ###"
       declare -r end_pattern="### END $temp_vars ###"
 
-      sed -n -e "/$begin_pattern/,/$end_pattern/{/$begin_pattern/d;/$end_pattern/d;p;}" "$node_deb_dir/node-deb" | \
+      sed -n -e "/$begin_pattern/,/$end_pattern/{/$begin_pattern/d;/$end_pattern/d;p;}" "$node_deb_dir/meteor-deb" | \
       sed '1d;$d' | \
       sed -e 's:\(.*{{ \)\([a-z_]*\)\( }}.*\):\2:g' | \
       sort
@@ -342,7 +351,7 @@ while [ -n "$1" ]; do
       ;;
     --no-md5sums)
       # HELPDOC: DEPRECATED. This option does nothing.
-      log_warn "Since 'node-deb' v0.6.0 this option does nothing. Please remove this from your build script" \
+      log_warn "Since 'meteor-deb' v0.6.0 this option does nothing. Please remove this from your build script" \
           'to ensure future compatibility.'
       ;;
     --show-changelog)
@@ -381,9 +390,9 @@ done
 
 # Set the package name
 if [ -z "$package_name" ]; then
-  package_name=$(jq -r '.node_deb.package_name' package.json)
+  package_name=$(jq -r '.node_deb.package_name' programs/server/package.json)
   if [[ "$package_name" == 'null' ]]; then
-    package_name=$(jq -r '.name' package.json)
+    package_name=$(jq -r '.name' programs/server/package.json)
     if [ "$package_name" == 'null' ]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_name" or "name"'
     fi
@@ -393,7 +402,7 @@ log_debug "The package name has been set to: $package_name"
 
 # Set the output deb name
 if [ -z "$output_deb_name" ]; then
-  output_deb_name="$(jq -r '.node_deb.output_deb_name' package.json)"
+  output_deb_name="$(jq -r '.node_deb.output_deb_name' programs/server/package.json)"
   if [[ "$output_deb_name" == 'null' ]]; then
     output_deb_name=""
   fi
@@ -402,7 +411,7 @@ log_debug "The deb filename name has been set to: ${output_deb_name:-dbkg-deb de
 
 # Set the install directory
 if [ -z "$install_dir" ]; then
-  install_dir=$(jq -r '.node_deb.install_dir' package.json)
+  install_dir=$(jq -r '.node_deb.install_dir' programs/server/package.json)
   if [[ "$install_dir" == 'null' ]]; then
     install_dir='/usr/share'
   fi
@@ -411,9 +420,9 @@ log_debug "The install_dir directory was set to: $install_dir"
 
 # Set the package version
 if [ -z "$package_version" ]; then
-  package_version=$(jq -r '.node_deb.version' package.json)
+  package_version=$(jq -r '.node_deb.version' programs/server/package.json)
   if [[ "$package_version" == 'null' ]]; then
-    package_version=$(jq -r '.version' package.json)
+    package_version=$(jq -r '.version' programs/server/package.json)
     if [ "$package_version" == 'null' ]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_version" "version"'
     fi
@@ -423,9 +432,9 @@ log_debug "The package version has been set to: $package_version"
 
 # Set the package description
 if [ -z "$package_description" ]; then
-  package_description=$(jq -r '.node_deb.description' package.json)
+  package_description=$(jq -r '.node_deb.description' programs/server/package.json)
   if [[ "$package_description" == 'null' ]]; then
-    package_description=$(jq -r '.description' package.json)
+    package_description=$(jq -r '.description' programs/server/package.json)
     if [[ "$package_description" == null ]]; then
       die 'If no override is provided, your package.json must have element "node_deb.package_description" or "description"'
     fi
@@ -435,16 +444,16 @@ log_debug "The package description has been set and starts with: $(echo "$packag
 
 # Set the package maintainer
 if [ -z "$package_maintainer" ]; then
-  package_maintainer=$(jq -r '.node_deb.maintainer' package.json)
+  package_maintainer=$(jq -r '.node_deb.maintainer' programs/server/package.json)
   if [[ "$package_maintainer" == 'null' ]]; then
-    package_maintainer=$(jq -r '.author' package.json)
+    package_maintainer=$(jq -r '.author' programs/server/package.json)
   fi
 fi
 log_debug "The package maintainer has been set to: $package_maintainer"
 
 # Set the package dependencies
 if [ -z "$package_dependencies" ]; then
-  package_dependencies=$(jq -r '.node_deb.dependencies' package.json)
+  package_dependencies=$(jq -r '.node_deb.dependencies' programs/server/package.json)
   default_package_dependencies="nodejs, sudo"
   if [[ "$package_dependencies" != 'null' ]]; then
     default_package_dependencies="${default_package_dependencies}, "
@@ -460,7 +469,7 @@ log_debug "The package dependencies has been set to: $package_dependencies"
 
 # Set the package architecture
 if [ -z "$architecture" ]; then
-  architecture=$(jq -r '.node_deb.architecture' package.json)
+  architecture=$(jq -r '.node_deb.architecture' programs/server/package.json)
   if [[ "$architecture" == 'null' ]]; then
     architecture="all"
   fi
@@ -470,7 +479,7 @@ log_debug "The package architecture has been set to: $architecture"
 
 # Set executable name
 if [ -z "$executable_name" ]; then
-  executable_name=$(jq -r '.node_deb.executable_name' package.json)
+  executable_name=$(jq -r '.node_deb.executable_name' programs/server/package.json)
   if [[ "$executable_name" == 'null' ]]; then
     executable_name="$package_name"
   fi
@@ -479,7 +488,7 @@ log_debug "The executable name has been set to: $executable_name"
 
 # Set unix user
 if [ -z "$user" ]; then
-  user=$(jq -r '.node_deb.user' package.json)
+  user=$(jq -r '.node_deb.user' programs/server/package.json)
   if [[ "$user" == 'null' ]]; then
     user="$package_name"
   fi
@@ -493,7 +502,7 @@ fi
 
 # Set unix group
 if [ -z "$group" ]; then
-  group=$(jq -r '.node_deb.group' package.json)
+  group=$(jq -r '.node_deb.group' programs/server/package.json)
   if [[ "$group" == 'null' ]]; then
     group="$user"
   fi
@@ -507,7 +516,7 @@ fi
 
 # Set init type
 if [ -z "$init" ]; then
-  init=$(jq -r '.node_deb.init' package.json)
+  init=$(jq -r '.node_deb.init' programs/server/package.json)
   if [[ "$init" == 'null' ]]; then
     init='auto'
   fi
@@ -522,7 +531,7 @@ log_debug "The init type has been set to: $init"
 
 # Set install strategy
 if [ -z "$install_strategy" ]; then
-  install_strategy=$(jq -r '.node_deb.install_strategy' package.json)
+  install_strategy=$(jq -r '.node_deb.install_strategy' programs/server/package.json)
   if [[ "$install_strategy" == 'null' ]]; then
     install_strategy='auto'
   fi
@@ -537,7 +546,7 @@ log_debug "The install strategy has been set to: $install_strategy"
 
 # Check for extra files
 if [ -z "$extra_files" ]; then
-  extra_files=$(jq -r '.node_deb.extra_files' package.json)
+  extra_files=$(jq -r '.node_deb.extra_files' programs/server/package.json)
   if [[ "$extra_files" == 'null' ]]; then
     extra_files=''
   fi
@@ -546,7 +555,7 @@ log_debug "The extra_files directory was set to: $extra_files"
 
 # Set control template
 if [ -z "$template_control" ]; then
-  template_control=$(jq -r '.node_deb.templates.control' package.json)
+  template_control=$(jq -r '.node_deb.templates.control' programs/server/package.json)
   if [[ "$template_control" == 'null' ]]; then
     template_control=''
   fi
@@ -556,7 +565,7 @@ log_debug "The control template has been set to: $template_control"
 
 # Set executable template
 if [ -z "$template_executable" ]; then
-  template_executable=$(jq -r '.node_deb.templates.executable' package.json)
+  template_executable=$(jq -r '.node_deb.templates.executable' programs/server/package.json)
   if [[ "$template_executable" == 'null' ]]; then
     template_executable=''
   fi
@@ -566,7 +575,7 @@ log_debug "The executable template has been set to: $template_executable"
 
 # Set preinst template
 if [ -z "$template_preinst" ]; then
-  template_preinst=$(jq -r '.node_deb.templates.preinst' package.json)
+  template_preinst=$(jq -r '.node_deb.templates.preinst' programs/server/package.json)
   if [[ "$template_preinst" == 'null' ]]; then
     template_preinst=''
   fi
@@ -576,7 +585,7 @@ log_debug "The preinst template has been set to: $template_preinst"
 
 # Set postinst template
 if [ -z "$template_postinst" ]; then
-  template_postinst=$(jq -r '.node_deb.templates.postinst' package.json)
+  template_postinst=$(jq -r '.node_deb.templates.postinst' programs/server/package.json)
   if [[ "$template_postinst" == 'null' ]]; then
     template_postinst=''
   fi
@@ -586,7 +595,7 @@ log_debug "The postinst template has been set to: $template_postinst"
 
 # Set postrm template
 if [ -z "$template_postrm" ]; then
-  template_postrm=$(jq -r '.node_deb.templates.postrm' package.json)
+  template_postrm=$(jq -r '.node_deb.templates.postrm' programs/server/package.json)
   if [[ "$template_postrm" == 'null' ]]; then
     template_postrm=''
   fi
@@ -596,7 +605,7 @@ log_debug "The postrm template has been set to: $template_postrm"
 
 # Set prerm template
 if [ -z "$template_prerm" ]; then
-  template_prerm=$(jq -r '.node_deb.templates.prerm' package.json)
+  template_prerm=$(jq -r '.node_deb.templates.prerm' programs/server/package.json)
   if [[ "$template_prerm" == 'null' ]]; then
     template_prerm=''
   fi
@@ -606,7 +615,7 @@ log_debug "The prerm template has been set to: $template_prerm"
 
 # Set systemd unit template
 if [ -z "$template_systemd" ]; then
-  template_systemd=$(jq -r '.node_deb.templates.systemd_service' package.json)
+  template_systemd=$(jq -r '.node_deb.templates.systemd_service' programs/server/package.json)
   if [[ "$template_systemd" == 'null' ]]; then
     template_systemd=''
   fi
@@ -616,7 +625,7 @@ log_debug "The systemd template has been set to: $template_systemd"
 
 # Set upstart conf template
 if [ -z "$template_upstart" ]; then
-  template_upstart=$(jq -r '.node_deb.templates.upstart_conf' package.json)
+  template_upstart=$(jq -r '.node_deb.templates.upstart_conf' programs/server/package.json)
   if [[ "$template_upstart" == 'null' ]]; then
     template_upstart=''
   fi
@@ -626,7 +635,7 @@ log_debug "The upstart template has been set to: $template_upstart"
 
 # set sysv init template
 if [ -z "$template_sysv" ]; then
-  template_sysv=$(jq -r '.node_deb.templates.sysv_init' package.json)
+  template_sysv=$(jq -r '.node_deb.templates.sysv_init' programs/server/package.json)
   if [[ "$template_sysv" == 'null' ]]; then
     template_sysv=''
   fi
@@ -636,7 +645,7 @@ log_debug "The System V init script template has been set to: $template_sysv"
 
 # Set default variables (upstart) conf template
 if [ -z "$template_default_variables" ]; then
-  template_default_variables=$(jq -r '.node_deb.templates.default_variables' package.json)
+  template_default_variables=$(jq -r '.node_deb.templates.default_variables' programs/server/package.json)
   if [[ "$template_default_variables" == 'null' ]]; then
     template_default_variables=''
   fi
@@ -646,7 +655,7 @@ log_debug "The default variables file template has been set to: $template_defaul
 
 # Set the daemon entrypoint
 if [ -z "$daemon_entrypoint" ]; then
-  daemon_entrypoint=$(jq -r '.node_deb.entrypoints.daemon' package.json)
+  daemon_entrypoint=$(jq -r '.node_deb.entrypoints.daemon' programs/server/package.json)
   if [[ "$daemon_entrypoint" == 'null' ]] && [[ "$init" != 'none' ]]; then
     die 'Daemon entrypoint must be set in .node_deb.entrypoints.daemon in package.json'
   fi
@@ -655,7 +664,7 @@ log_debug "The daemon entrypoint has been set to: $daemon_entrypoint"
 
 # Set the CLI entrypoint
 if [ -z "$cli_entrypoint" ]; then
-  cli_entrypoint=$(jq -r '.node_deb.entrypoints.cli' package.json)
+  cli_entrypoint=$(jq -r '.node_deb.entrypoints.cli' programs/server/package.json)
   if [[ "$cli_entrypoint" == 'null' ]]; then
     cli_entrypoint="$daemon_entrypoint"
   fi
@@ -785,23 +794,23 @@ ln -sf "$install_dir/$package_name/bin/$executable_name" "$deb_dir/usr/bin/$exec
 # Copy all files into temporary Debian dir
 log_info 'Recursively copying files into Debian directory'
 if echo "$@" | grep -q 'node_modules'; then
-  log_warn "Since node-deb v0.8.0, 'node_modules' cannot be included on the command line. Use the option" \
+  log_warn "Since meteor-deb v0.8.0, 'node_modules' cannot be included on the command line. Use the option" \
     "'--install-strategy' to pick if/how it is included. Inclusion of 'node_modules' will" \
     'result in an error in future releases.'
 fi
 
 if echo "$@" | grep -q 'package.json'; then
-  log_warn "Since node-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
+  log_warn "Since meteor-deb v0.6.0, 'package.json' is automatically included and should not be specified on the" \
     'command line.'
 fi
 
 if echo "$@" | grep -q 'npm-shrinkwrap.json'; then
-  log_warn "Since node-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
+  log_warn "Since meteor-deb v0.6.0, 'npm-shrinkwrap.json' is automatically included and should not be specified on the" \
     'command line.'
 fi
 
 if echo "$@" | grep -q 'package-lock.json'; then
-  log_warn "Since node-deb v0.10.0, 'package-lock.json' is automatically included and should not be specified on the" \
+  log_warn "Since meteor-deb v0.10.0, 'package-lock.json' is automatically included and should not be specified on the" \
     'command line.'
 fi
 
@@ -860,17 +869,17 @@ fi
 
 if ! [ -f "$deb_dir$install_dir/$package_name/app/package.json" ]; then
   log_info "Including 'package.json' in the Debian package."
-  cp -pf './package.json' "$deb_dir$install_dir/$package_name/app/"
+  cp -pf './programs/server/package.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
 if [ -f './package-lock.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/package-lock.json" ]; then
   log_info "Including 'package-lock.json' in the Debian package."
-  cp -pf './package-lock.json' "$deb_dir$install_dir/$package_name/app/"
+  cp -pf './programs/server/package-lock.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
 if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/npm-shrinkwrap.json" ]; then
   log_info "Including 'npm-shrinkwrap.json' in the Debian package."
-  cp -pf './npm-shrinkwrap.json' "$deb_dir$install_dir/$package_name/app/"
+  cp -pf './programs/server/npm-shrinkwrap.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
 # Calculate md5sums

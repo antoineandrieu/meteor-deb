@@ -1,21 +1,21 @@
 {
-  "name": "node-deb",
-  "version": "0.10.7",
-  "description": "Debian packaging for Node.js projects",
-  "author": "heartsucker <heartsucker@autistici.org>",
+  "name": "meteor-deb",
+  "version": "0.1.2",
+  "description": "Debian packaging for Meteor projects",
+  "author": "antoineandrieu <antoine@andrieu.me>",
   "bin": {
-    "node-deb": "./node-deb"
+    "meteor-deb": "./meteor-deb"
   },
   "scripts": {
     "test": "./test.sh --clean-first",
-    "node-deb": "./node-deb -- node-deb templates/ README.md CHANGELOG.md"
+    "meteor-deb": "./meteor-deb -- meteor-deb templates/ README.md CHANGELOG.md"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/heartsucker/node-deb.git"
+    "url": "git+https://github.com/antoineandrieu/meteor-deb.git"
   },
   "bugs": {
-    "url": "https://github.com/heartsucker/node-deb/issues"
+    "url": "https://github.com/antoineandrieu/meteor-deb/issues"
   },
   "keywords": [
     "debian",
@@ -31,9 +31,9 @@
   "preferGlobal": true,
   "private": false,
   "license": "MIT",
-  "homepage": "https://github.com/heartsucker/node-deb",
+  "homepage": "https://github.com/antoineandrieu/meteor-deb",
   "files": [
-    "node-deb",
+    "meteor-deb",
     "templates",
     "README.md",
     "CHANGELOG.md",
@@ -42,10 +42,11 @@
   "node_deb": {
     "init": "none",
     "entrypoints": {
-      "cli": "node-deb"
+      "cli": "meteor-deb"
     },
     "templates": {
       "control": "template-overrides/control"
     }
-  }
+  },
+  "dependencies": {}
 }
