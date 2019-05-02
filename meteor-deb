@@ -874,10 +874,10 @@ fi
 
 if [ -f './package-lock.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/package-lock.json" ]; then
   log_info "Including 'package-lock.json' in the Debian package."
-  cp -pf './programs/server/package-lock.json' "$deb_dir$install_dir/$package_name/app/"
+  cp -pf './package-lock.json' "$deb_dir$install_dir/$package_name/app/"
 fi
 
-if [ -f './npm-shrinkwrap.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/npm-shrinkwrap.json" ]; then
+if [ -f './programs/server/npm-shrinkwrap.json' ] && ! [ -f "$deb_dir$install_dir/$package_name/app/npm-shrinkwrap.json" ]; then
   log_info "Including 'npm-shrinkwrap.json' in the Debian package."
   cp -pf './programs/server/npm-shrinkwrap.json' "$deb_dir$install_dir/$package_name/app/"
 fi
