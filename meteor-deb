@@ -42,8 +42,6 @@ cd ../bundle
 sed -i '1i#!/usr/bin/node' main.js
 chmod +x main.js
 chmod u+w programs/server/package.json
-jq '. + { "node_deb": {"init": "systemd", "version": "1.2.3-beta", "description": "hello","entrypoints": {"daemon": "main.js"}} }' programs/server/package.json > tmp.$$.json && mv tmp.$$.json programs/server/package.json
-
 
 # the absolute path of this executable on the system
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
@@ -671,6 +669,8 @@ if [ -z "$cli_entrypoint" ]; then
 fi
 log_debug "The CLI entrypoint has been set to: $cli_entrypoint"
 
+# TODO : Add all variables to meteor build package file
+jq '. + { "node_deb": {"init": "systemd", "version": '$package_version', "description": '$package_description',"entrypoints": {"daemon": "main.js"}} }' programs/server/package.json > tmp.$$.json && mv tmp.$$.json programs/server/package.json
 
 deb_dir="${package_name}_${package_version}_${architecture}"
 
