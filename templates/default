@@ -4,8 +4,8 @@
 #
 # Example:
 #
-# NODE_ENV="production"
 
+NODE_ENV="production"
 ROOT_URL="http://localhost:3000"
 PORT="3000"
 MONGO_URL="mongodb://localhost:27017"
