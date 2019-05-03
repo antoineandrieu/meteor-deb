@@ -36,9 +36,9 @@ readlink_f() {
 }
 
 ### INITIALIZE ###
+npm install --production
 meteor build ../ --directory 
 cd ../bundle
-meteor npm install
 sed -i '1i#!/usr/bin/node' main.js
 chmod +x main.js
 chmod u+w programs/server/package.json
