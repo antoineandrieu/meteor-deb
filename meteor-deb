@@ -39,7 +39,6 @@ readlink_f() {
 
 # the absolute path of this executable on the system
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
-echo $node_deb_dir
 declare -r node_deb_dir
 
 # the absolute path of the target project's source code on the system
@@ -375,11 +374,15 @@ node_deb_var=$(jq -r '.node_deb' package.json)
 meteor build ../ --directory 
 cd ../bundle
 
-jq -r --arg node_deb_var $node_deb_var '.node_deb = $node_deb_var' programs/server/package.json > tmp && mv tmp programs/server/package.json
+chmod 664 programs/server/package.json
+jq -r --arg node_deb_var "$node_deb_var" '.node_deb = $node_deb_var' programs/server/package.json > tmp && mv tmp programs/server/package.json
+chmod 444 programs/server/package.json
 
 # Must be avoided with proper jq add command
 sed -i 's/\\n//g' programs/server/package.json
 sed -i 's/\\"/"/g' programs/server/package.json
+sed -i 's/"{/{/g' programs/server/package.json
+sed -i 's/}"/}/g' programs/server/package.json
 
 sed -i '1i#!/usr/bin/node' main.js
 chmod +x main.js
