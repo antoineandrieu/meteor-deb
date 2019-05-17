@@ -36,12 +36,6 @@ readlink_f() {
 }
 
 ### INITIALIZE ###
-npm install --production
-meteor build ../ --directory 
-cd ../bundle
-sed -i '1i#!/usr/bin/node' main.js
-chmod +x main.js
-chmod u+w programs/server/package.json
 
 # the absolute path of this executable on the system
 node_deb_dir="$(dirname "$(readlink_f "${BASH_SOURCE[0]}")")"
@@ -375,6 +369,17 @@ while [ -n "$1" ]; do
 done
 
 ### VALIDATION ###
+
+npm install --production
+node_deb_var=$(jq -r '.node_deb')
+meteor build ../ --directory 
+cd ../bundle
+
+jq '.node_deb = "$node_deb_var"' package.json > "$tmp" && mv "$tmp" package.json
+
+sed -i '1i#!/usr/bin/node' main.js
+chmod +x main.js
+chmod u+w programs/server/package.json
 
 if [ -z "$1" ]; then
   die 'You must pick at least one file or directory to add to the Debian package'
