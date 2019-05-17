@@ -123,5 +123,6 @@ if [[ "$init_type" != 'none' ]]; then
   mkdir -p '/var/log/{{ node_deb_package_name }}'
   chown -R '{{ node_deb_user }}:{{ node_deb_group }}' '/var/log/{{ node_deb_package_name }}'
 
+  start_service mongodb
   start_service '{{ node_deb_package_name }}'
 fi
