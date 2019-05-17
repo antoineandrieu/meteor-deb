@@ -371,11 +371,15 @@ done
 ### VALIDATION ###
 
 npm install --production
-node_deb_var=$(jq -r '.node_deb')
+node_deb_var=$(jq -r '.node_deb' package.json)
 meteor build ../ --directory 
 cd ../bundle
 
-jq '.node_deb = "$node_deb_var"' package.json > "$tmp" && mv "$tmp" package.json
+jq -r --arg node_deb_var $node_deb_var -c '.node_deb = $node_deb_var' programs/server/package.json > tmp && mv tmp programs/server/package.json
+
+# Must be avoided with proper jq add command
+sed 's/\\n//g' programs/server/package.json
+sed 's/\\"/"/g' programs/server/package.json
 
 sed -i '1i#!/usr/bin/node' main.js
 chmod +x main.js
