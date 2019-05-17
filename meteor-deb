@@ -371,8 +371,8 @@ done
 
 npm install --production
 node_deb_var=$(jq -r '.node_deb' package.json)
-meteor build ../ --directory 
-cd ../bundle
+meteor build . --directory 
+cd bundle
 
 chmod 664 programs/server/package.json
 jq -r --arg node_deb_var "$node_deb_var" '.node_deb = $node_deb_var' programs/server/package.json > tmp && mv tmp programs/server/package.json
