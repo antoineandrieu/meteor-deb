@@ -85,6 +85,8 @@ dependency_install() {
       if [ ! -d './programs/server/node_modules' ]; then
         if hash npm 2> /dev/null; then
           echo "Directory 'node_modules' did not exist. Running 'npm install'"
+	  # Workaround for issue https://github.com/lovell/sharp/issues/637
+	  (cd programs/server && rm -rf node_modules/sharp/vendor)
 	  (cd programs/server && npm install --unsafe-perm)
         else
           echo "WARN: 'npm' was not on the path. Dependencies may be missing."
@@ -105,6 +107,8 @@ dependency_install() {
       ;;
     npm-install)
       echo 'Installing dependenencies from NPM'
+      # Workaround for issue https://github.com/lovell/sharp/issues/637
+      (cd programs/server && rm -rf node_modules/sharp/vendor)
       (cd programs/server && npm install --production --unsafe-perm)
       ;;
     *)
