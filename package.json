@@ -1,6 +1,6 @@
 {
   "name": "meteor-deb",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Debian packaging for Meteor projects",
   "author": "antoineandrieu <antoine@andrieu.me>",
   "bin": {
